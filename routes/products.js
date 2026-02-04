@@ -15,9 +15,10 @@ router.get('/', (req, res) => {
 
 // 新增商品
 router.post('/', (req, res) => {
-  const { name, price, image } = req.body;
-  const sql = 'INSERT INTO products (name, price, image) VALUES (?, ?, ?)';
-  db.query(sql, [name, price, image], (err, result) => {
+  const { name, price, image, stock } = req.body; // Include stock in the request body
+
+  const sql = 'INSERT INTO products (name, price, image, stock) VALUES (?, ?, ?, ?)';
+  db.query(sql, [name, price, image, stock || 0], (err, result) => { // Default stock to 0 if not provided
     if (err) {
       return res.status(500).json({ error: err.message });
     }
@@ -28,9 +29,9 @@ router.post('/', (req, res) => {
 // 更新商品
 router.put('/:id', (req, res) => {
   const { id } = req.params;
-  const { name, price, image } = req.body;
-  const sql = 'UPDATE products SET name = ?, price = ?, image = ? WHERE id = ?';
-  db.query(sql, [name, price, image, id], (err) => {
+  const { name, price, image, stock } = req.body; // Include stock in the request body
+  const sql = 'UPDATE products SET name = ?, price = ?, image = ?, stock = ? WHERE id = ?';
+  db.query(sql, [name, price, image, stock, id], (err) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
