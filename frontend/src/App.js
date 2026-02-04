@@ -1,66 +1,63 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import axios from 'axios'; // Import axios at the top of the file
+import axios from 'axios';
+import styles from './App.module.css';
 import OrdersPage from './OrdersPage';
 
-function StorePage({ products, handleAddToCart, cart, handleCartUpdate, totalAmount, handleCheckout }) {
+function StorePage({ products, handleAddToCart, cart, handleCartUpdate, totalAmount, handleCheckout, toggleDarkMode, darkMode, toggleCartSidebar }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-      <div>
+    <div className={styles.storePage}>
+      <header className={styles.storeHeader}>
         <h1>商店頁面</h1>
+        <div>
+          <button onClick={toggleDarkMode}>
+            {darkMode ? '日間模式' : '夜間模式'}
+          </button>
+          <div className={styles.cartIcon} onClick={toggleCartSidebar}>
+            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            {cart.length > 0 && <div className={styles.cartBadge}>{cart.length}</div>}
+          </div>
+        </div>
+      </header>
+
+      <div>
         <p>歡迎光臨！這裡是商店首頁。</p>
 
-        {/* 顯示商品清單 */}
         <h2>商品清單</h2>
-        <ul>
+        <div className={styles.productGrid}>
           {products.map((product) => (
-            <li key={product.id}>
-              商品名稱: {product.name}, 金額: {product.price}, 庫存: {product.stock > 0 ? product.stock : '暫無庫存'}
-              <button
-                onClick={() => handleAddToCart(product)}
-                disabled={product.stock <= 0} // 如果庫存為 0，禁用按鈕
-                style={{
-                  backgroundColor: product.stock <= 0 ? 'gray' : '',
-                  cursor: product.stock <= 0 ? 'not-allowed' : 'pointer',
-                }}
-              >
-                加入購物車
-              </button>
-            </li>
+            <div key={product.id} className={styles.productCard}>
+              <img
+                src={`http://localhost:4000${product.image}` || 'https://via.placeholder.com/150'}
+                alt={product.name}
+                className={styles.productImage}
+              />
+              <h3>
+                {product.name}
+                <span className={styles.productStock}>庫存: {product.stock > 0 ? product.stock : '暫無庫存'}</span>
+              </h3>
+              <p>描述: {product.description || '無描述'}</p>
+              <div className={styles.productFooter}>
+                <span className={styles.productPrice}>${product.price}</span>
+                <button
+                  onClick={() => handleAddToCart(product)}
+                  disabled={product.stock <= 0}
+                  className={`${styles.addToCartButton} ${product.stock <= 0 ? styles.disabledButton : ''}`}
+                >
+                  加入購物車
+                </button>
+              </div>
+            </div>
           ))}
-        </ul>
+        </div>
 
         <Link to="/admin">
           <button>進入後台</button>
         </Link>
-      </div>
-
-      {/* 購物車 */}
-      <div style={{ border: '1px solid black', padding: '10px', width: '300px' }}>
-        <h2>購物車</h2>
-        {cart.length === 0 ? (
-          <p>購物車是空的</p>
-        ) : (
-          <ul>
-            {cart.map((item) => {
-              const product = products.find((p) => p.id === item.id);
-              const isUnavailable = !product || product.stock < item.quantity;
-              return (
-                <li key={item.id} style={{ color: isUnavailable ? 'red' : 'black' }}>
-                  {item.name} - {item.price} x {item.quantity}
-                  {isUnavailable && <span>（無法下單）</span>}
-                  <button onClick={() => handleCartUpdate(item.id, item.quantity + 1)} disabled={isUnavailable}>+</button>
-                  <button onClick={() => handleCartUpdate(item.id, item.quantity - 1)}>-</button>
-                  <button onClick={() => handleCartUpdate(item.id, 0)}>移除</button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-        <h3>總金額: {totalAmount}</h3>
-        <button onClick={handleCheckout} disabled={cart.length === 0}>
-          結帳
-        </button>
       </div>
     </div>
   );
@@ -69,9 +66,10 @@ function StorePage({ products, handleAddToCart, cart, handleCartUpdate, totalAmo
 function App() {
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
-  const [orders, setOrders] = useState([]); // 新增 orders 和 setOrders
+  const [orders, setOrders] = useState([]);
+  const [darkMode, setDarkMode] = useState(false);
+  const [cartSidebarOpen, setCartSidebarOpen] = useState(false);
 
-  // 獲取商品資料
   useEffect(() => {
     fetch('http://localhost:4000/api/products')
       .then((response) => response.json())
@@ -79,10 +77,16 @@ function App() {
       .catch((error) => console.error('Error fetching products:', error));
   }, []);
 
-  // 計算購物車總金額
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+  }, [darkMode]);
+
   const totalAmount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  // 加入購物車
   const handleAddToCart = (product) => {
     if (!product || product.stock <= 0) {
       alert('該商品已售罄，無法加入購物車。');
@@ -106,7 +110,6 @@ function App() {
     });
   };
 
-  // 更新購物車數量或移除商品
   const handleCartUpdate = (id, newQuantity) => {
     setCart((prevCart) => {
       if (newQuantity <= 0) {
@@ -125,10 +128,9 @@ function App() {
     });
   };
 
-  // 結帳邏輯
   const handleCheckout = () => {
     const orderData = {
-      userId: 1, // 假設使用者 ID 為 1
+      userId: 1,
       productList: cart.map((item) => ({
         productId: item.id,
         quantity: item.quantity,
@@ -137,7 +139,6 @@ function App() {
       status: 'pending',
     };
 
-    // 檢查購物車中是否有已下架或庫存不足的商品
     const invalidItems = cart.filter((item) => {
       const product = products.find((p) => p.id === item.id);
       return !product || product.stock < item.quantity;
@@ -153,22 +154,17 @@ function App() {
     }
 
     axios.post('http://localhost:4000/api/orders', orderData)
-      .then((response) => {
-        setCart([]); // 清空購物車
-
-        // 重新獲取商品資料
+      .then(() => {
+        setCart([]);
         axios.get('http://localhost:4000/api/products')
-          .then((response) => {
-            setProducts(response.data);
-          })
-          .catch((error) => {
-            console.error('Error fetching products:', error);
-          });
+          .then((response) => setProducts(response.data))
+          .catch((error) => console.error('Error fetching products:', error));
       })
-      .catch((error) => {
-        console.error('Error creating order:', error.response ? error.response.data : error.message);
-      });
+      .catch((error) => console.error('Error creating order:', error.response ? error.response.data : error.message));
   };
+
+  const toggleDarkMode = () => setDarkMode((prev) => !prev);
+  const toggleCartSidebar = () => setCartSidebarOpen((prev) => !prev);
 
   return (
     <Router>
@@ -182,7 +178,10 @@ function App() {
               cart={cart}
               handleCartUpdate={handleCartUpdate}
               totalAmount={totalAmount}
-              handleCheckout={handleCheckout} // 傳遞結帳邏輯
+              handleCheckout={handleCheckout}
+              toggleDarkMode={toggleDarkMode}
+              darkMode={darkMode}
+              toggleCartSidebar={toggleCartSidebar}
             />
           }
         />
@@ -192,12 +191,71 @@ function App() {
             <OrdersPage
               products={products}
               setProducts={setProducts}
-              orders={orders} // 傳遞 orders
-              setOrders={setOrders} // 傳遞 setOrders
+              orders={orders}
+              setOrders={setOrders}
             />
           }
         />
       </Routes>
+
+      {/* Cart Sidebar */}
+      {cartSidebarOpen && (
+        <div className={`${styles.cartSidebar} ${cartSidebarOpen ? styles.active : ''}`}>
+          <div className={styles.cartHeader}>
+            <h2>購物車</h2>
+            <button onClick={toggleCartSidebar}>&times;</button>
+          </div>
+          <div className={styles.cartContent}>
+            {cart.length === 0 ? (
+              <p>購物車是空的</p>
+            ) : (
+              <div>
+                {cart.map((item) => {
+                  const product = products.find((p) => p.id === item.id);
+                  const isUnavailable = !product || product.stock < item.quantity;
+                  return (
+                    <div key={item.id} className={styles.cartItem}>
+                      <img src={`http://localhost:4000${item.image}`} alt={item.name} />
+                      <div className={styles.cartItemDetails}>
+                        <h4>{item.name}</h4>
+                        <p>${item.price}</p>
+                      </div>
+                      <div className={styles.cartItemActions}>
+                        <button onClick={() => handleCartUpdate(item.id, item.quantity - 1)}>-</button>
+                        <span>{item.quantity}</span>
+                        <button onClick={() => handleCartUpdate(item.id, item.quantity + 1)} disabled={isUnavailable}>+</button>
+                        <button onClick={() => handleCartUpdate(item.id, 0)}>&#128465;</button>
+                      </div>
+                      <div className={styles.cartItemPrice}>${(item.price * item.quantity).toFixed(2)}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          <div className={styles.cartFooter}>
+            <div className="subtotal">
+              <span>Subtotal:</span>
+              <span>${totalAmount.toFixed(2)}</span>
+            </div>
+            <div className="tax">
+              <span>Tax (8%):</span>
+              <span>${(totalAmount * 0.08).toFixed(2)}</span>
+            </div>
+            <div className="total">
+              <span>Total:</span>
+              <span>${(totalAmount * 1.08).toFixed(2)}</span>
+            </div>
+            <button onClick={handleCheckout} disabled={cart.length === 0}>
+              Proceed to Checkout
+            </button>
+          </div>
+        </div>
+      )}
+      <div
+        className={`${styles.cartOverlay} ${cartSidebarOpen ? styles.active : ''}`}
+        onClick={toggleCartSidebar}
+      ></div>
     </Router>
   );
 }

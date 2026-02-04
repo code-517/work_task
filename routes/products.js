@@ -1,6 +1,26 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Set up multer storage configuration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, '../uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir);
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({ storage });
 
 // 獲取所有商品
 router.get('/', (req, res) => {
@@ -13,12 +33,17 @@ router.get('/', (req, res) => {
   });
 });
 
-// 新增商品
-router.post('/', (req, res) => {
-  const { name, price, image, stock } = req.body; // Include stock in the request body
+// 新增商品，支持圖片上傳
+router.post('/', upload.single('image'), (req, res) => {
+  const { name, price, stock, description } = req.body; // 獲取 description 欄位
+  const image = req.file ? `/uploads/${req.file.filename}` : null; // 獲取上傳的圖片路徑
 
-  const sql = 'INSERT INTO products (name, price, image, stock) VALUES (?, ?, ?, ?)';
-  db.query(sql, [name, price, image, stock || 0], (err, result) => { // Default stock to 0 if not provided
+  if (!name || !price || !stock) {
+    return res.status(400).json({ error: 'Name, price, and stock are required fields.' });
+  }
+
+  const sql = 'INSERT INTO products (name, price, image, stock, description) VALUES (?, ?, ?, ?, ?)';
+  db.query(sql, [name, price, image, stock || 0, description || null], (err, result) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }

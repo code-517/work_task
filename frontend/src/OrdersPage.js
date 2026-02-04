@@ -8,39 +8,51 @@ function OrdersPage({ products = [], setProducts, orders = [], setOrders }) {
     name: '',
     price: '',
     quantity: '',
+    description: '',
   });
+  const [productImage, setProductImage] = useState(null); // State for image file
 
   // 獲取訂單資料
-useEffect(() => {
-  axios.get('http://localhost:4000/api/orders')
-    .then((response) => {
-      console.log('訂單資料:', response.data); // 打印返回的資料
-      if (response.data && Array.isArray(response.data)) {
-        setOrders(response.data); // 更新訂單資料
-      } else {
-        console.error('Invalid orders data:', response.data);
-        setOrders([]); // 如果數據無效，設置為空陣列
-      }
-    })
-    .catch((error) => {
-      console.error('Error fetching orders:', error);
-      setOrders([]); // 如果請求失敗，設置為空陣列
-    });
-}, [setOrders]);
+  useEffect(() => {
+    axios.get('http://localhost:4000/api/orders')
+      .then((response) => {
+        console.log('訂單資料:', response.data); // 打印返回的資料
+        if (response.data && Array.isArray(response.data)) {
+          setOrders(response.data); // 更新訂單資料
+        } else {
+          console.error('Invalid orders data:', response.data);
+          setOrders([]); // 如果數據無效，設置為空陣列
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching orders:', error);
+        setOrders([]); // 如果請求失敗，設置為空陣列
+      });
+  }, [setOrders]);
 
   // 新增商品
-  const handleAddProduct = () => {
-    const productToAdd = {
-      ...newProduct,
-      price: parseFloat(newProduct.price),
-      stock: parseInt(newProduct.quantity, 10), // Change to stock
-    };
+  const handleAddProduct = (e) => {
+    e.preventDefault();
 
-    axios.post('http://localhost:4000/api/products', productToAdd)
+    const formData = new FormData();
+    formData.append('name', newProduct.name);
+    formData.append('price', newProduct.price);
+    formData.append('stock', newProduct.quantity);
+    formData.append('description', newProduct.description);
+    if (productImage) {
+      formData.append('image', productImage); // 添加圖片文件
+    }
+
+    axios.post('http://localhost:4000/api/products', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
       .then((response) => {
-        alert(response.data.message);
-        setProducts([...products, { ...productToAdd, id: response.data.id }]);
-        setNewProduct({ name: '', price: '', quantity: '' });
+        alert('商品新增成功');
+        setProducts([...products, { ...newProduct, id: response.data.id, image: response.data.image }]);
+        setNewProduct({ name: '', price: '', quantity: '', description: '' });
+        setProductImage(null); // Reset image file
       })
       .catch((error) => {
         console.error('Error adding product:', error);
@@ -79,7 +91,7 @@ useEffect(() => {
       </ul>
 
       <h2>新增商品</h2>
-      <div>
+      <form onSubmit={handleAddProduct}>
         <label>
           商品名稱:
           <input
@@ -107,14 +119,30 @@ useEffect(() => {
           />
         </label>
         <br />
-        <button onClick={handleAddProduct}>新增商品</button>
-      </div>
+        <label>
+          描述:
+          <textarea
+            value={newProduct.description}
+            onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+          />
+        </label>
+        <br />
+        <label>
+          圖片:
+          <input
+            type="file"
+            onChange={(e) => setProductImage(e.target.files[0])}
+          />
+        </label>
+        <br />
+        <button type="submit">新增商品</button>
+      </form>
 
       {/* 訂單管理 */}
-        <h2>所有訂單</h2>
-        <ul>
+      <h2>所有訂單</h2>
+      <ul>
         {orders && orders.length > 0 ? (
-            orders.map((order, index) => {
+          orders.map((order, index) => {
             const productList = JSON.parse(order.product_list); // 解析 product_list
             const productDetails = productList.map((p) => {
               const product = products.find((prod) => prod.id === p.productId);
@@ -123,15 +151,15 @@ useEffect(() => {
                 : `商品ID: ${p.productId} (數量: ${p.quantity})`;
             });
             return (
-                <li key={index}>
+              <li key={index}>
                 訂單編號: {order.id}, 商品名稱: {productDetails.join(', ')}, 金額: {order.total_amount}
-                </li>
+              </li>
             );
-            })
+          })
         ) : (
-            <p>目前沒有訂單</p>
+          <p>目前沒有訂單</p>
         )}
-        </ul>
+      </ul>
     </div>
   );
 }

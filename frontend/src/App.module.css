@@ -1,0 +1,316 @@
+/* Shop.module.css */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: #0085FF;
+}
+
+.cartIcon {
+  position: relative;
+  cursor: pointer;
+}
+
+.cartBadge {
+  position: absolute;
+  top: -10px; /* 調整位置以更靠近圖標 */
+  right: -10px; /* 調整位置以更靠近圖標 */
+  background: #FF4444;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: none; /* 隱藏購物車徽章的數字 */
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.darkModeToggle {
+  cursor: pointer;
+  padding: 5px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Ensure consistent column width */
+  gap: 30px; /* Add more spacing between items */
+  padding: 40px; /* Add padding around the grid */
+  justify-items: center; /* Center items horizontally */
+}
+
+.productCard {
+  border: 1px solid var(--border-color);
+  border-radius: 8px; /* Reduced border radius */
+  padding: 15px; /* Reduced padding */
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  text-align: center;
+  transition: transform 0.3s, box-shadow 0.3s;
+  width: 100%;
+  max-width: 200px; /* Reduced card width */
+}
+
+.productCard:hover {
+  transform: translateY(-8px); /* Slightly more pronounced hover effect */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); /* Add a stronger shadow on hover */
+}
+
+.productImage {
+  width: 100%;
+  height: 150px; /* Reduced height for a smaller image */
+  object-fit: cover;
+  border-radius: 8px; /* Match card border radius */
+  margin-bottom: 10px; /* Reduced spacing below the image */
+}
+
+.productCard h3 {
+  font-size: 16px; /* Smaller font size for product name */
+  margin: 10px 0 5px; /* Adjusted spacing */
+  display: flex;
+  justify-content: space-between; /* Align name and stock on the same line */
+  align-items: center; /* Vertically align items */
+}
+
+.productStock {
+  font-size: 14px; /* Smaller font size for stock */
+  color: var(--text-color);
+  margin-left: 10px; /* Add spacing between name and stock */
+}
+
+.productCard p {
+  font-size: 14px; /* Smaller font size for description */
+  margin: 5px 0; /* Adjusted spacing */
+  text-align: left; /* Align description to the right */
+}
+
+.addToCartButton {
+  background-color: #0085FF;
+  color: white;
+  padding: 8px 12px; /* Reduced padding for button */
+  font-size: 14px; /* Smaller font size for button text */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.addToCartButton:hover {
+  background-color: #005BB5;
+}
+
+.productPrice {
+  font-size: 16px; /* Match font size with product name */
+  font-weight: bold;
+  margin: 10px 0; /* Add spacing above price */
+  color: #0085FF; /* Highlight price */
+}
+
+.productCard .productPrice {
+  display: inline-block;
+  margin-right: 10px; /* Add spacing between price and button */
+  vertical-align: middle; /* Align price with button */
+  margin-top: 10px; /* Move price to the bottom */
+}
+
+.productCard .addToCartButton {
+  display: inline-block;
+  vertical-align: middle; /* Align button with price */
+  margin-top: 10px; /* Move button to the bottom */
+}
+
+.productCard .productFooter {
+  display: flex;
+  justify-content: space-between; /* Align price and button on the same row */
+  align-items: center; /* Vertically align items */
+  margin-top: 10px; /* Add spacing above the footer */
+}
+
+.cartSidebar {
+  position: fixed;
+  top: 0;
+  left: -100%; /* Ensure the cart starts off-screen */
+  width: 400px; /* Adjusted width for better layout */
+  height: 97%; /* 縮短購物車滑出框的高度 */
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1); /* Shadow on the right side */
+  transition: left 0.3s ease-in-out; /* Smooth sliding effect */
+  z-index: 200;
+  padding: 20px;
+  display: flex;
+  flex-direction: column; /* Stack items vertically */
+  overflow-y: hidden; /* Prevent overflow initially */
+}
+
+.cartSidebar.active {
+  left: 0; /* Slide into view */
+  overflow-y: auto; /* Enable scrolling when active */
+}
+
+.cartOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease-in-out;
+  z-index: 150;
+}
+
+.cartOverlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.cartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: bold;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+}
+
+.cartItem {
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+}
+
+.cartItem img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-right: 15px;
+}
+
+.cartItemDetails {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.cartItemDetails h4 {
+  font-size: 16px;
+  margin: 0 0 5px;
+}
+
+.cartItemDetails p {
+  font-size: 14px;
+  margin: 0;
+  color: var(--text-color);
+}
+
+.cartItemActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cartItemActions button {
+  background-color: #f0f0f0;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.cartItemActions button:hover {
+  background-color: #e0e0e0;
+}
+
+.cartItemPrice {
+  font-size: 16px;
+  font-weight: bold;
+  color: #0085FF;
+}
+
+.cartContent {
+  flex: 1;
+  overflow-y: auto; /* Enable scrolling for the content */
+  margin-bottom: 20px; /* Add spacing for the footer */
+}
+
+.cartFooter {
+  border-top: 1px solid var(--border-color);
+  padding-top: 20px;
+  background-color: var(--bg-color);
+  position: sticky;
+  bottom: 0;
+}
+
+.cartFooter .subtotal,
+.cartFooter .tax,
+.cartFooter .total {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.cartFooter .total {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.cartFooter button {
+  width: 100%;
+  background-color: #000;
+  color: #fff;
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.cartFooter button:hover {
+  background-color: #333;
+}
+
+.disabledButton {
+  background-color: #ccc; /* 灰色背景表示禁用 */
+  color: #666; /* 灰色文字 */
+  cursor: not-allowed; /* 禁用鼠標指針 */
+  opacity: 0.6; /* 半透明效果 */
+}
+
+/* Dark mode styles */
+:root {
+  --bg-color: #ffffff;
+  --text-color: #202020;
+  --border-color: #cccccc;
+}
+
+body.dark-mode {
+  --bg-color: #202020;
+  --text-color: #ffffff;
+  --border-color: #444444;
+}
