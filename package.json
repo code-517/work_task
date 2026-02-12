@@ -5,6 +5,7 @@
     "dotenv": "^17.2.4",
     "ecpay-payment": "^1.1.1",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
     "moment-timezone": "^0.6.0",
     "multer": "^2.0.2",
     "mysql": "^2.18.1",
