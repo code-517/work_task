@@ -2,6 +2,7 @@
   "dependencies": {
     "bootstrap": "^5.3.8",
     "cors": "^2.8.6",
+    "dotenv": "^17.2.4",
     "ecpay-payment": "^1.1.1",
     "express": "^5.2.1",
     "moment-timezone": "^0.6.0",

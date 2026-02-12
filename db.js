@@ -1,12 +1,13 @@
 const mysql = require('mysql2');
+require('dotenv').config();
 
-// 建立 MySQL 連線
+// 建立 MySQL 連線（使用 .env 變數）
 const db = mysql.createConnection({
-  host: 'trolley.proxy.rlwy.net',
-  user: 'root',
-  port: 36295,
-  password: 'RmuDWQZIGISNQgSQYEBQwEwNNDgUrupK',
-  database: 'railway',
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  port: process.env.DB_PORT,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
 });
 
 // 連線到資料庫
