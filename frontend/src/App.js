@@ -13,7 +13,7 @@ import OrdersPage from './OrdersPage';
 // - Displays product list, header with dark mode toggle, and cart icon
 // ============================================================================
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000';
-
+console.log('API_URL:', API_URL); // Debugging log
 function StorePage({
   products,
   handleAddToCart,
