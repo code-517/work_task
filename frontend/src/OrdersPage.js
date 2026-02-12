@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
+
+// 取得 API base URL，預設為本地端
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 import './OrdersPage.css';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000';
 
 function OrdersPage({ products = [], setProducts, orders = [], setOrders }) {
   const navigate = useNavigate();
@@ -18,7 +21,7 @@ function OrdersPage({ products = [], setProducts, orders = [], setOrders }) {
 
   // 獲取訂單資料
   useEffect(() => {
-    axios.get('http://localhost:4000/api/orders')
+    axios.get(`${API_URL}/api/orders`)
       .then((response) => {
         console.log('訂單資料:', response.data); // 打印返回的資料
         if (response.data && Array.isArray(response.data)) {
@@ -63,7 +66,7 @@ function OrdersPage({ products = [], setProducts, orders = [], setOrders }) {
     formData.append('description', newProduct.description);
     formData.append('image', productImage);
 
-    axios.post('http://localhost:4000/api/products', formData, {
+    axios.post(`${API_URL}/api/products`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -71,7 +74,7 @@ function OrdersPage({ products = [], setProducts, orders = [], setOrders }) {
       .then((response) => {
         alert('商品新增成功');
         // 重新 fetch 商品列表
-        axios.get('http://localhost:4000/api/products')
+        axios.get(`${API_URL}/api/products`)
           .then((res) => setProducts(res.data));
         setNewProduct({ name: '', price: '', quantity: '', description: '' });
         setProductImage(null);
@@ -86,7 +89,7 @@ function OrdersPage({ products = [], setProducts, orders = [], setOrders }) {
 
   // 下架商品
   const handleRemoveProduct = (id) => {
-    axios.delete(`http://localhost:4000/api/products/${id}`)
+    axios.delete(`${API_URL}/api/products/${id}`)
       .then(() => {
         alert('商品已下架');
         setProducts(products.filter((product) => product.id !== id));

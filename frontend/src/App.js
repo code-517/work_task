@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+
+// 取得 API base URL，預設為本地端
 import { BrowserRouter as Router, Link, Route, Routes } from 'react-router-dom';
 import ReactSwitch from 'react-switch';
 import ThankYouPage from './ThankYouPage'; // 引入 ThankYouPage 組件
@@ -10,6 +12,8 @@ import OrdersPage from './OrdersPage';
 // Store Page Component
 // - Displays product list, header with dark mode toggle, and cart icon
 // ============================================================================
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000';
+
 function StorePage({
   products,
   handleAddToCart,
@@ -107,7 +111,7 @@ function StorePage({
         <div className={styles.productGrid}>
           {products.map((product) => {
             const imageSrc =
-              (product && product.image && `http://localhost:4000${product.image}`) ||
+              (product && product.image && `${API_URL}${product.image}`) ||
               'https://via.placeholder.com/150';
 
             return (
@@ -169,7 +173,7 @@ function App() {
   const [isCheckingOut, setIsCheckingOut] = useState(false); // 防止重複結帳
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/products')
+    fetch(`${API_URL}/api/products`)
       .then((response) => response.json())
       .then((data) => setProducts(data))
       .catch((error) => console.error('Error fetching products:', error));
@@ -246,7 +250,7 @@ const handleCheckout = async () => {
   }
 
   try {
-    const orderRes = await fetch('http://localhost:4000/api/orders', {
+    const orderRes = await fetch(`${API_URL}/api/orders`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -265,7 +269,7 @@ const handleCheckout = async () => {
     const orderData = await orderRes.json();
     const { tradeNo } = orderData;
 
-    const paymentRes = await fetch('http://localhost:4000/api/orders/payment', {
+    const paymentRes = await fetch(`${API_URL}/api/orders/payment`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -332,7 +336,7 @@ const handleCheckout = async () => {
                   const product = products.find(p => p.id === item.id);
                   const isUnavailable = !product || product.stock <= 0;
                   const imageSrc =
-                    (item && item.image && `http://localhost:4000${item.image}`) ||
+                    (item && item.image && `${API_URL}${item.image}`) ||
                     'https://via.placeholder.com/80';
 
                   return (
