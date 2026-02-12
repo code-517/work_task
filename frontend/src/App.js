@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Link, Route, Routes } from 'react-router-dom';
 import ReactSwitch from 'react-switch';
-
+import ThankYouPage from './ThankYouPage'; // 引入 ThankYouPage 組件
+import LoginPage from './LoginPage'; // 引入 LoginPage 組件
 import styles from './App.module.css';
 import OrdersPage from './OrdersPage';
 
@@ -54,62 +55,54 @@ function StorePage({
 
   return (
     <div className={styles.storePage}>
-      {/* ----------------------------------------------------------------------
-         Header: Title, Dark Mode Toggle, Cart Icon with Badge
-      ---------------------------------------------------------------------- */}
       <header className={styles.storeHeader}>
         <h1 className={styles.storeTitle}>商店頁面</h1>
-
       </header>
 
-      {/* ----------------------------------------------------------------------
-         Main Content: Welcome, Product Grid
-      ---------------------------------------------------------------------- */}
       <main>
+        <div className={styles.headerRow}>
+          <h2 className={styles.title}>商品清單</h2>
 
-      <div className={styles.headerRow}>
-        <h2 className={styles.title}>商品清單</h2>
+          <div className={styles.headerRight}>
+            <ReactSwitch
+              checked={darkMode}
+              onChange={toggleDarkMode}
+              onColor="#000"
+              offColor="#ccc"
+              onHandleColor="#fff"
+              offHandleColor="#000"
+              checkedIcon={false}
+              uncheckedIcon={false}
+              height={20}
+              width={48}
+            />
 
-        <div className={styles.headerRight}>
-          <ReactSwitch
-            checked={darkMode}
-            onChange={toggleDarkMode}
-            onColor="#000"
-            offColor="#ccc"
-            onHandleColor="#fff"
-            offHandleColor="#000"
-            checkedIcon={false}
-            uncheckedIcon={false}
-            height={20}
-            width={48}
-          />
-
-          <div
-            className={styles.cartIcon}
-            role="button"
-            tabIndex={0}
-            aria-label="購物車"
-            onClick={toggleCartSidebar}
-          >
-            <svg
-              width="24"
-              height="24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              aria-hidden="true"
+            <div
+              className={styles.cartIcon}
+              role="button"
+              tabIndex={0}
+              aria-label="購物車"
+              onClick={toggleCartSidebar}
             >
-              <circle cx="9" cy="21" r="1" />
-              <circle cx="20" cy="21" r="1" />
-              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-            </svg>
+              <svg
+                width="24"
+                height="24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <circle cx="9" cy="21" r="1" />
+                <circle cx="20" cy="21" r="1" />
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+              </svg>
 
-            {cart.length > 0 && (
-              <div className={styles.cartBadge}>{cart.length}</div>
-            )}
+              {cart.length > 0 && (
+                <div className={styles.cartBadge}>{cart.length}</div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
         <div className={styles.productGrid}>
           {products.map((product) => {
@@ -164,20 +157,17 @@ function StorePage({
 
 // ============================================================================
 // Main App Component
-// - State management, effects, event handlers, and routes
 // ============================================================================
 function App() {
-  // --------------------------------------------------------------------------
-  // State Management
-  // --------------------------------------------------------------------------
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [darkMode, setDarkMode] = useState(false);
   const [cartSidebarOpen, setCartSidebarOpen] = useState(false);
+  const [orderNote, setOrderNote] = useState(''); // 新增備註欄位
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false); // 防止重複結帳
 
-  // --------------------------------------------------------------------------
-  // Effects: Fetch Products
-  // --------------------------------------------------------------------------
   useEffect(() => {
     fetch('http://localhost:4000/api/products')
       .then((response) => response.json())
@@ -185,9 +175,6 @@ function App() {
       .catch((error) => console.error('Error fetching products:', error));
   }, []);
 
-  // --------------------------------------------------------------------------
-  // Effects: Dark Mode Body Class Toggle
-  // --------------------------------------------------------------------------
   useEffect(() => {
     if (darkMode) {
       document.body.classList.add('dark-mode');
@@ -196,18 +183,13 @@ function App() {
     document.body.classList.remove('dark-mode');
   }, [darkMode]);
 
-  // --------------------------------------------------------------------------
-  // Derived State: Cart Total Amount
-  // --------------------------------------------------------------------------
-  const totalAmount = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  // 只計算有效商品的總金額
+  const totalAmount = cart.reduce((sum, item) => {
+    const product = products.find(p => p.id === item.id);
+    if (!product || product.stock <= 0) return sum;
+    return sum + item.price * item.quantity;
+  }, 0);
 
-  // --------------------------------------------------------------------------
-  // Event Handlers
-  // --------------------------------------------------------------------------
-  // Add a product to the cart or increase quantity
   const handleAddToCart = (product) => {
     if (!product || product.stock <= 0) return;
 
@@ -222,49 +204,110 @@ function App() {
     });
   };
 
-  // Update cart item quantity with delta (+1 / -1), clamped to minimum 1
   const handleCartUpdate = (productId, delta) => {
-    setCart((prevCart) =>
-      prevCart
-        .map((item) =>
-          item.id === productId
-            ? { ...item, quantity: Math.max(item.quantity + delta, 1) }
-            : item
-        )
-        .filter((item) => item.quantity > 0)
-    );
+    setCart((prevCart) => {
+      return prevCart.map((item) => {
+        if (item.id === productId) {
+          // 檢查庫存
+          const product = products.find(p => p.id === productId);
+          const newQty = item.quantity + delta;
+          if (delta > 0 && product && newQty > product.stock) {
+            alert('庫存不足');
+            return item;
+          }
+          return { ...item, quantity: Math.max(newQty, 1) };
+        }
+        return item;
+      }).filter((item) => item.quantity > 0);
+    });
   };
 
-  // Remove item from the cart
   const handleRemoveFromCart = (productId) => {
     setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
   };
 
-  // Placeholder checkout handler
-  const handleCheckout = () => {
-    // Placeholder for checkout logic
-    alert('結帳功能尚未實作');
-  };
+const handleCheckout = async () => {
+  if (isCheckingOut) return; // 防止重複送出
+  setIsCheckingOut(true);
+  // 新增檢查：有下架或庫存為0的商品禁止結帳
+  const unavailable = cart.find(item => {
+    const product = products.find(p => p.id === item.id);
+    return !product || product.stock <= 0;
+  });
+  if (unavailable) {
+    alert('購物車內有商品已下架或庫存為0，請先移除再結帳');
+    setIsCheckingOut(false);
+    return;
+  }
+  if (cart.length === 0) {
+    alert('購物車是空的');
+    setIsCheckingOut(false);
+    return;
+  }
 
-  // Toggle dark mode
+  try {
+    const orderRes = await fetch('http://localhost:4000/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: 1,
+        productList: cart.map(item => ({
+          productId: item.id,
+          quantity: item.quantity,
+          name: item.name
+        })),
+        totalAmount,
+        status: 'pending',
+        note: orderNote, // 備註
+      }),
+    });
+
+    const orderData = await orderRes.json();
+    const { tradeNo } = orderData;
+
+    const paymentRes = await fetch('http://localhost:4000/api/orders/payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tradeNo,
+        amount: totalAmount,
+        itemName: cart.map(item => item.name).join('#')
+      }),
+    });
+
+    const paymentData = await paymentRes.json();
+
+    if (!paymentData.success) {
+      setIsCheckingOut(false);
+      return alert(`付款初始化失敗: ${paymentData.error}`);
+    }
+
+    const div = document.createElement('div');
+    div.innerHTML = paymentData.paymentForm;
+    document.body.appendChild(div);
+
+    const form = div.querySelector('form');
+    if (form) {
+      form.submit();
+    } else {
+      alert('找不到付款表單');
+      setIsCheckingOut(false);
+    }
+
+  } catch (err) {
+    console.error('結帳失敗:', err);
+    alert(err.message);
+    setIsCheckingOut(false);
+  }
+};
+
+
   const toggleDarkMode = () => setDarkMode((prev) => !prev);
-
-  // Toggle cart sidebar open/close
   const toggleCartSidebar = () => setCartSidebarOpen((open) => !open);
 
-  // --------------------------------------------------------------------------
-  // Render
-  // --------------------------------------------------------------------------
   return (
     <Router>
       <div>
-        {/* ==================================================================
-           Cart Sidebar + Overlay
-           - Semantic structure
-           - Grid-aligned cart item layout via CSS classes:
-             cartItemThumb, cartItemTitle, cartItemDelete,
-             cartItemUnitPrice, cartItemQty, cartItemSubtotal
-        =================================================================== */}
         <aside
           className={`${styles.cartSidebar} ${cartSidebarOpen ? styles.active : ''}`}
           aria-hidden={!cartSidebarOpen}
@@ -286,6 +329,8 @@ function App() {
             ) : (
               <div role="list">
                 {cart.map((item) => {
+                  const product = products.find(p => p.id === item.id);
+                  const isUnavailable = !product || product.stock <= 0;
                   const imageSrc =
                     (item && item.image && `http://localhost:4000${item.image}`) ||
                     'https://via.placeholder.com/80';
@@ -297,40 +342,45 @@ function App() {
                       role="listitem"
                       aria-label={item.name}
                     >
-                      {/* Thumbnail */}
                       <div className={styles.cartItemThumb}>
                         <img src={imageSrc} alt={item.name} />
                       </div>
 
-                      {/* Title */}
                       <div className={styles.cartItemTitle}>{item.name}</div>
 
-                      {/* Quantity Controls */}
-                      <div className={styles.cartItemQty}>
-                        <button
-                          aria-label="減少數量"
-                          disabled={item.quantity <= 1}
-                          onClick={() => handleCartUpdate(item.id, -1)}
-                          type="button"
-                        >
-                          -
-                        </button>
-                        <span>{item.quantity}</span>
-                        <button
-                          aria-label="增加數量"
-                          onClick={() => handleCartUpdate(item.id, 1)}
-                          type="button"
-                        >
-                          +
-                        </button>
-                      </div>
+                      {isUnavailable && (
+                        <div style={{ color: 'red', fontWeight: 'bold', marginTop: 4 }}>
+                          此商品已經沒有
+                        </div>
+                      )}
 
-                      {/* Subtotal */}
-                      <div className={styles.cartItemSubtotal}>
-                        ${item.price * item.quantity}
-                      </div>
+                      {!isUnavailable && (
+                        <>
+                          <div className={styles.cartItemQty}>
+                            <button
+                              aria-label="減少數量"
+                              disabled={item.quantity <= 1}
+                              onClick={() => handleCartUpdate(item.id, -1)}
+                              type="button"
+                            >
+                              -
+                            </button>
+                            <span>{item.quantity}</span>
+                            <button
+                              aria-label="增加數量"
+                              onClick={() => handleCartUpdate(item.id, 1)}
+                              type="button"
+                            >
+                              +
+                            </button>
+                          </div>
 
-                      {/* Delete */}
+                          <div className={styles.cartItemSubtotal}>
+                            ${item.price * item.quantity}
+                          </div>
+                        </>
+                      )}
+
                       <div className={styles.cartItemDelete}>
                         <button
                           aria-label="移除商品"
@@ -356,7 +406,6 @@ function App() {
                             <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
                           </svg>
                         </button>
-
                       </div>
                     </article>
                   );
@@ -369,8 +418,20 @@ function App() {
             <div>
               <strong>總金額：</strong> ${totalAmount}
             </div>
-            <button onClick={handleCheckout} type="button">
-              結帳
+            {/* 新增訂單備註欄位 */}
+            <div style={{ margin: '8px 0' }}>
+              <label htmlFor="orderNote" style={{ fontWeight: 'bold' }}>訂單備註：</label>
+              <textarea
+                id="orderNote"
+                value={orderNote}
+                onChange={e => setOrderNote(e.target.value)}
+                placeholder="請輸入訂單備註..."
+                rows={2}
+                style={{ width: '100%', resize: 'vertical', marginTop: 4 }}
+              />
+            </div>
+            <button onClick={handleCheckout} type="button" disabled={isCheckingOut}>
+              {isCheckingOut ? '結帳中...' : '結帳'}
             </button>
           </footer>
         </aside>
@@ -381,9 +442,6 @@ function App() {
           aria-hidden={!cartSidebarOpen}
         />
 
-        {/* ==================================================================
-           Routes
-        =================================================================== */}
         <Routes>
           <Route
             path="/"
@@ -401,7 +459,22 @@ function App() {
               />
             }
           />
-          <Route path="/admin" element={<OrdersPage />} />
+          <Route
+            path="/admin"
+            element={
+              isAdmin ? (
+                <OrdersPage
+                  products={products}
+                  setProducts={setProducts}
+                  orders={orders}
+                  setOrders={setOrders}
+                />
+              ) : (
+                <LoginPage setIsAdmin={setIsAdmin} />
+              )
+            }
+          />
+          <Route path="/thank-you" element={<ThankYouPage />} />
         </Routes>
       </div>
     </Router>

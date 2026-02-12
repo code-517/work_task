@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import PropTypes from 'prop-types';
+import './OrdersPage.css';
 
 function OrdersPage({ products = [], setProducts, orders = [], setOrders }) {
+  const navigate = useNavigate();
   console.log('setOrders prop:', setOrders); // Debugging log
   const [newProduct, setNewProduct] = useState({
     name: '',
@@ -11,6 +14,7 @@ function OrdersPage({ products = [], setProducts, orders = [], setOrders }) {
     description: '',
   });
   const [productImage, setProductImage] = useState(null); // State for image file
+  const fileInputRef = useRef(null); // 新增 ref
 
   // 獲取訂單資料
   useEffect(() => {
@@ -34,14 +38,30 @@ function OrdersPage({ products = [], setProducts, orders = [], setOrders }) {
   const handleAddProduct = (e) => {
     e.preventDefault();
 
+    // 必填欄位驗證
+    if (!newProduct.name.trim()) {
+      alert('商品名稱為必填');
+      return;
+    }
+    if (!newProduct.price.trim()) {
+      alert('金額為必填');
+      return;
+    }
+    if (!newProduct.quantity.trim()) {
+      alert('數量為必填');
+      return;
+    }
+    if (!productImage) {
+      alert('圖片為必填');
+      return;
+    }
+
     const formData = new FormData();
     formData.append('name', newProduct.name);
     formData.append('price', newProduct.price);
     formData.append('stock', newProduct.quantity);
     formData.append('description', newProduct.description);
-    if (productImage) {
-      formData.append('image', productImage); // 添加圖片文件
-    }
+    formData.append('image', productImage);
 
     axios.post('http://localhost:4000/api/products', formData, {
       headers: {
@@ -50,9 +70,14 @@ function OrdersPage({ products = [], setProducts, orders = [], setOrders }) {
     })
       .then((response) => {
         alert('商品新增成功');
-        setProducts([...products, { ...newProduct, id: response.data.id, image: response.data.image }]);
+        // 重新 fetch 商品列表
+        axios.get('http://localhost:4000/api/products')
+          .then((res) => setProducts(res.data));
         setNewProduct({ name: '', price: '', quantity: '', description: '' });
-        setProductImage(null); // Reset image file
+        setProductImage(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
       })
       .catch((error) => {
         console.error('Error adding product:', error);
@@ -73,6 +98,12 @@ function OrdersPage({ products = [], setProducts, orders = [], setOrders }) {
 
   return (
     <div className="OrdersPage">
+      <button
+        style={{ marginBottom: '16px', background: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', padding: '8px 16px', cursor: 'pointer' }}
+        onClick={() => navigate('/')}
+      >
+        回到前台
+      </button>
       <h1>商品與訂單管理系統</h1>
 
       {/* 商品管理 */}
@@ -93,7 +124,7 @@ function OrdersPage({ products = [], setProducts, orders = [], setOrders }) {
       <h2>新增商品</h2>
       <form onSubmit={handleAddProduct}>
         <label>
-          商品名稱:
+          商品名稱<span style={{ color: 'red' }}>*</span>:
           <input
             type="text"
             value={newProduct.name}
@@ -102,7 +133,7 @@ function OrdersPage({ products = [], setProducts, orders = [], setOrders }) {
         </label>
         <br />
         <label>
-          金額:
+          金額<span style={{ color: 'red' }}>*</span>:
           <input
             type="text"
             value={newProduct.price}
@@ -111,7 +142,7 @@ function OrdersPage({ products = [], setProducts, orders = [], setOrders }) {
         </label>
         <br />
         <label>
-          數量:
+          數量<span style={{ color: 'red' }}>*</span>:
           <input
             type="text"
             value={newProduct.quantity}
@@ -128,9 +159,10 @@ function OrdersPage({ products = [], setProducts, orders = [], setOrders }) {
         </label>
         <br />
         <label>
-          圖片:
+          圖片<span style={{ color: 'red' }}>*</span>:
           <input
             type="file"
+            ref={fileInputRef}
             onChange={(e) => setProductImage(e.target.files[0])}
           />
         </label>
@@ -153,6 +185,9 @@ function OrdersPage({ products = [], setProducts, orders = [], setOrders }) {
             return (
               <li key={index}>
                 訂單編號: {order.id}, 商品名稱: {productDetails.join(', ')}, 金額: {order.total_amount}
+                {order.note && (
+                  <><br /><span style={{ color: '#888' }}>備註: {order.note}</span></>
+                )}
               </li>
             );
           })

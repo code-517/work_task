@@ -1,0 +1,42 @@
+.thankYouPage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #f9f9f9;
+  font-family: 'Arial', sans-serif;
+  text-align: center;
+  color: #333;
+}
+
+.thankYouPage h1 {
+  font-size: 2.5rem;
+  color: #4CAF50;
+  margin-bottom: 1rem;
+}
+
+.thankYouPage p {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.backToStoreButton {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.backToStoreButton:hover {
+  background-color: #45a049;
+}
+
+.backToStoreButton:focus {
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}

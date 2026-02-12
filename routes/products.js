@@ -67,12 +67,29 @@ router.put('/:id', (req, res) => {
 // 刪除商品
 router.delete('/:id', (req, res) => {
   const { id } = req.params;
-  const sql = 'DELETE FROM products WHERE id = ?';
-  db.query(sql, [id], (err) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-    res.json({ message: '商品刪除成功' });
+  // 先查詢商品圖片路徑
+  db.query('SELECT image FROM products WHERE id = ?', [id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!results || results.length === 0) return res.status(404).json({ error: '商品不存在' });
+    const imagePath = results[0].image;
+
+    // 刪除商品資料
+    db.query('DELETE FROM products WHERE id = ?', [id], (err2) => {
+      if (err2) return res.status(500).json({ error: err2.message });
+
+      // 刪除圖片檔案（排除 null、空字串、預設圖片）
+      if (imagePath && !imagePath.includes('default.png')) {
+        const fullPath = path.join(__dirname, '..', imagePath);
+        fs.unlink(fullPath, (fsErr) => {
+          // 若檔案不存在也不影響刪除流程
+          if (fsErr && fsErr.code !== 'ENOENT') {
+            console.error('刪除圖片失敗:', fsErr);
+          }
+        });
+      }
+
+      res.json({ message: '商品刪除成功' });
+    });
   });
 });
 

@@ -2,7 +2,9 @@
   "dependencies": {
     "bootstrap": "^5.3.8",
     "cors": "^2.8.6",
+    "ecpay-payment": "^1.1.1",
     "express": "^5.2.1",
+    "moment-timezone": "^0.6.0",
     "multer": "^2.0.2",
     "mysql": "^2.18.1",
     "mysql2": "^3.16.2",

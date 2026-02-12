@@ -144,7 +144,7 @@ body {
 .productImage {
   width: 100%;
   height: 160px;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
   margin: 0 auto;
   border-radius: 8px;
