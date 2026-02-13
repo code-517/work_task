@@ -66,28 +66,31 @@ router.put('/:id', (req, res) => {
   });
 });
 
-// 刪除商品
+// 刪除商品（同步刪除 Cloudinary 圖片）
 router.delete('/:id', (req, res) => {
   const { id } = req.params;
-  // 先查詢商品圖片路徑
-  db.query('SELECT image FROM products WHERE id = ?', [id], (err, results) => {
+  db.query('SELECT image FROM products WHERE id = ?', [id], async (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     if (!results || results.length === 0) return res.status(404).json({ error: '商品不存在' });
     const imagePath = results[0].image;
 
     // 刪除商品資料
-    db.query('DELETE FROM products WHERE id = ?', [id], (err2) => {
+    db.query('DELETE FROM products WHERE id = ?', [id], async (err2) => {
       if (err2) return res.status(500).json({ error: err2.message });
 
-      // 刪除圖片檔案（排除 null、空字串、預設圖片）
-      if (imagePath && !imagePath.includes('default.png')) {
-        const fullPath = path.join(__dirname, '..', imagePath);
-        fs.unlink(fullPath, (fsErr) => {
-          // 若檔案不存在也不影響刪除流程
-          if (fsErr && fsErr.code !== 'ENOENT') {
-            console.error('刪除圖片失敗:', fsErr);
+      // 若圖片為 Cloudinary 圖片網址，則刪除 Cloudinary 圖片
+      if (imagePath && imagePath.startsWith('http') && imagePath.includes('cloudinary.com')) {
+        try {
+          // 取得 public_id
+          // Cloudinary 圖片網址格式：https://res.cloudinary.com/<cloud_name>/image/upload/v<version>/<folder>/<public_id>.<ext>
+          const matches = imagePath.match(/\/upload\/.*?\/(.*)\.[a-zA-Z0-9]+$/);
+          const publicId = matches ? matches[1] : null;
+          if (publicId) {
+            await cloudinary.uploader.destroy(`products/${publicId}`);
           }
-        });
+        } catch (e) {
+          console.error('刪除 Cloudinary 圖片失敗:', e);
+        }
       }
 
       res.json({ message: '商品刪除成功' });
