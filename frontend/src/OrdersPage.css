@@ -98,3 +98,39 @@ button[type="submit"] {
 button[type="submit"]:hover {
   background-color: #218838;
 }
+
+/* 訂單列表專用 */
+.order-list {
+  list-style: none;
+  padding: 0;
+}
+
+.order-item {
+  margin-bottom: 16px;
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+  background: #fff;
+  border-radius: 4px;
+}
+
+.order-label {
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.order-note, .order-address {
+  margin-left: 24px;
+  color: #888;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.order-products {
+  margin-left: 0;
+  padding-left: 24px;
+}
+
+.order-status {
+  font-weight: bold;
+  margin-left: 8px;
+}

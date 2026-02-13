@@ -4,14 +4,10 @@
 - 資料庫使用 Railway 雲端 MySQL
 - 商品圖片資源存放於 Cloudinary 雲端圖片服務
 
-## 資料庫欄位設計
-## 資料庫設計
 
+## 資料庫
 ### 資料表結構
-1. **商品表（`products`）**
-   - 欄位：id, name, price, image, stock, description
-2. **訂單表（`orders`）**
-   - 欄位：id, user_id, product_list, total_amount, status, tradeNo, note
+
 ### 商品表（products）
 - id：主鍵，自動編號
 - name：商品名稱
@@ -70,13 +66,7 @@
 
 ### 金流
 - 使用綠界 API 提供的付款功能（如信用卡付款、ATM 轉帳）。
-
-## 非功能性需求
-- **性能要求**：系統需在 1 秒內響應用戶操作。
-- **安全性**：
-  - 金流頁面需使用 HTTPS。
-  - 防止 SQL 注入攻擊。
-
+ 
 ## 流程圖
 
 ### 用戶操作流程

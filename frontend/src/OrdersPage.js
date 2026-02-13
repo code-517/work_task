@@ -173,29 +173,35 @@ function OrdersPage({ products = [], setProducts, orders = [], setOrders }) {
 
       {/* 訂單管理 */}
       <h2>所有訂單</h2>
-      <ul>
+      <ul className="order-list">
         {orders && orders.length > 0 ? (
           orders.map((order, index) => {
-            const productList = JSON.parse(order.product_list); // 解析 product_list
-            const productDetails = productList.map((p) => {
-              const product = products.find((prod) => prod.id === p.productId);
-              return product
-                ? `${product.name} (數量: ${p.quantity})`
-                : `商品ID: ${p.productId} (數量: ${p.quantity})`;
-            });
+            const productList = JSON.parse(order.product_list);
             return (
-              <li key={index}>
-                訂單編號: {order.id}, 商品名稱: {productDetails.join(', ')}, 金額: {order.total_amount},
-                狀態: {order.status === 'pending' ? (
-                  <span style={{ color: 'red', fontWeight: 'bold' }}>未付款</span>
-                ) : (
-                  <span style={{ color: 'blue', fontWeight: 'bold' }}>已付款</span>
-                )}
-                {order.note && (
-                  <><br /><span style={{ color: '#888' }}>訂單備註: {order.note}</span></>
-                )}
-                {order.address && (
-                  <><br /><span style={{ color: '#888' }}>寄送地址: {order.address}</span></>
+              <li className="order-item" key={index} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '48px' }}>
+                <div style={{ flex: 1 }}>
+                  <div><span className="order-label">訂單編號:</span> {order.id}</div>
+                  <div><span className="order-label">訂單內容:</span> {productList.map((p, i) => {
+                    const product = products.find((prod) => prod.id === p.productId);
+                    return (
+                      <span key={i} style={{ marginRight: '8px' }}>
+                        {product ? product.name : `商品ID: ${p.productId}`} (數量: {p.quantity})
+                      </span>
+                    );
+                  })}</div>
+                  <div><span className="order-label">金額:</span> {order.total_amount}</div>
+                  <div>
+                    <span className="order-label">狀態:</span>
+                    <span className="order-status" style={{ color: order.status === 'pending' ? 'red' : 'blue' }}>
+                      {order.status === 'pending' ? '未付款' : '已付款'}
+                    </span>
+                  </div>
+                </div>
+                {(order.note || order.address) && (
+                  <div style={{ minWidth: '180px', background: '#f7f7f7', padding: '8px 16px', borderRadius: '4px', color: '#888', fontSize: '14px', alignSelf: 'flex-end' }}>
+                    {order.note && <div style={{ marginBottom: '4px' }}>訂單備註: {order.note}</div>}
+                    {order.address && <div>寄送地址: {order.address}</div>}
+                  </div>
                 )}
               </li>
             );
