@@ -134,3 +134,16 @@ button[type="submit"]:hover {
   font-weight: bold;
   margin-left: 8px;
 }
+
+@media (max-width: 600px) {
+  .order-item {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  .order-item > div:last-child {
+    align-self: stretch !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+}
