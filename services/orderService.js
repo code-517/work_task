@@ -1,7 +1,7 @@
 // services/orderService.js
 const db = require('../db');
 
-async function createOrder(userId, productList, totalAmount, status = 'pending', tradeNo = undefined, note = undefined) {
+async function createOrder(userId, productList, totalAmount, status = 'pending', tradeNo = undefined, note = undefined, address = undefined) {
   try {
     // 新流程：建立訂單時預設為 pending，不在此階段扣庫存
     let sql, params;
