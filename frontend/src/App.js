@@ -13,7 +13,6 @@ import OrdersPage from './OrdersPage';
 // - Displays product list, header with dark mode toggle, and cart icon
 // ============================================================================
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000';
-console.log('API_URL:', API_URL); // Debugging log
 function StorePage({
   products,
   handleAddToCart,
@@ -110,9 +109,16 @@ function StorePage({
 
         <div className={styles.productGrid}>
           {products.map((product) => {
-            const imageSrc =
-              (product && product.image && `${API_URL}${product.image}`) ||
-              'https://via.placeholder.com/150';
+
+            // 若 image 欄位為完整網址（如 Cloudinary），直接用；否則拼接 API_URL
+            let imageSrc = 'https://via.placeholder.com/150';
+            if (product && product.image) {
+              if (/^https?:\/\//.test(product.image)) {
+                imageSrc = product.image;
+              } else {
+                imageSrc = `${API_URL}${product.image}`;
+              }
+            }
 
             return (
               <div key={product.id} className={styles.productCard}>
@@ -335,9 +341,16 @@ const handleCheckout = async () => {
                 {cart.map((item) => {
                   const product = products.find(p => p.id === item.id);
                   const isUnavailable = !product || product.stock <= 0;
-                  const imageSrc =
-                    (item && item.image && `${API_URL}${item.image}`) ||
-                    'https://via.placeholder.com/80';
+
+                  // 若 image 欄位為完整網址（如 Cloudinary），直接用；否則拼接 API_URL
+                  let imageSrc = 'https://via.placeholder.com/80';
+                  if (item && item.image) {
+                    if (/^https?:\/\//.test(item.image)) {
+                      imageSrc = item.image;
+                    } else {
+                      imageSrc = `${API_URL}${item.image}`;
+                    }
+                  }
 
                   return (
                     <article

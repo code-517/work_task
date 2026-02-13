@@ -2,25 +2,26 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+require('dotenv').config();
 
-// Set up multer storage configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir);
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  },
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_URL.match(/@([\w-]+)/)[1],
+  api_key: process.env.CLOUDINARY_URL.match(/cloudinary:\/\/(\w+):/)[1],
+  api_secret: process.env.CLOUDINARY_URL.match(/:(\w+)@/)[1],
 });
 
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'products',
+    allowed_formats: ['jpg', 'png', 'jpeg'],
+  },
+});
 const upload = multer({ storage });
+
+// ...Cloudinary 設定已取代本地儲存...
 
 // 獲取所有商品
 router.get('/', (req, res) => {
@@ -33,10 +34,11 @@ router.get('/', (req, res) => {
   });
 });
 
-// 新增商品，支持圖片上傳
+// 新增商品，支持圖片上傳（Cloudinary）
 router.post('/', upload.single('image'), (req, res) => {
-  const { name, price, stock, description } = req.body; // 獲取 description 欄位
-  const image = req.file ? `/uploads/${req.file.filename}` : null; // 獲取上傳的圖片路徑
+  const { name, price, stock, description } = req.body;
+  // Cloudinary 上傳成功後 req.file.path 會是圖片網址
+  const image = req.file ? req.file.path : null;
 
   if (!name || !price || !stock) {
     return res.status(400).json({ error: 'Name, price, and stock are required fields.' });

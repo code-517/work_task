@@ -183,11 +183,10 @@ router.post('/return', async (req, res) => {
   console.log('收到綠界背景通知:', req.body);
   try {
     const { MerchantTradeNo, RtnCode } = req.body;
-    const orderId = MerchantTradeNo.slice(1);
     if (RtnCode === '1') {
       try {
-        await require('../services/orderService').fulfillOrder(orderId);
-        console.log(`訂單 ${orderId} 已付款並扣庫存`);
+        await require('../services/orderService').fulfillOrder(MerchantTradeNo);
+        console.log(`訂單 ${MerchantTradeNo} 已付款並扣庫存`);
         return res.send('1|OK');
       } catch (err) {
         console.error('付款回調處理失敗（扣庫存）:', err);
