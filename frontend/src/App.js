@@ -173,7 +173,8 @@ function App() {
   const [cart, setCart] = useState([]);
   const [orders, setOrders] = useState([]);
   const [cartSidebarOpen, setCartSidebarOpen] = useState(false);
-  const [orderNote, setOrderNote] = useState(''); // 新增備註欄位
+  const [orderNote, setOrderNote] = useState(''); // 訂單備註
+  const [orderAddress, setOrderAddress] = useState(''); // 寄送地址
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false); // 防止重複結帳
 
@@ -250,6 +251,11 @@ const handleCheckout = async () => {
     setIsCheckingOut(false);
     return;
   }
+  if (!orderAddress.trim()) {
+    alert('請填寫寄送地址');
+    setIsCheckingOut(false);
+    return;
+  }
 
   try {
     const orderRes = await fetch(`${API_URL}/api/orders`, {
@@ -264,7 +270,8 @@ const handleCheckout = async () => {
         })),
         totalAmount,
         status: 'pending',
-        note: orderNote, // 備註
+        note: orderNote, // 訂單備註
+        address: orderAddress, // 寄送地址
       }),
     });
 
@@ -430,7 +437,7 @@ const handleCheckout = async () => {
             <div>
               <strong>總金額：</strong> ${totalAmount}
             </div>
-            {/* 新增訂單備註欄位 */}
+            {/* 訂單備註與寄送地址欄位 */}
             <div style={{ margin: '8px 0' }}>
               <label htmlFor="orderNote" style={{ fontWeight: 'bold' }}>訂單備註：</label>
               <textarea
@@ -440,6 +447,18 @@ const handleCheckout = async () => {
                 placeholder="請輸入訂單備註..."
                 rows={2}
                 style={{ width: '100%', resize: 'vertical', marginTop: 4 }}
+              />
+            </div>
+            <div style={{ margin: '8px 0' }}>
+              <label htmlFor="orderAddress" style={{ fontWeight: 'bold' }}>寄送地址<span style={{ color: 'red' }}>*</span>：</label>
+              <input
+                id="orderAddress"
+                type="text"
+                value={orderAddress}
+                onChange={e => setOrderAddress(e.target.value)}
+                placeholder="請輸入寄送地址..."
+                style={{ width: '100%', marginTop: 4 }}
+                required
               />
             </div>
             <button onClick={handleCheckout} type="button" disabled={isCheckingOut}>

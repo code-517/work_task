@@ -185,9 +185,17 @@ function OrdersPage({ products = [], setProducts, orders = [], setOrders }) {
             });
             return (
               <li key={index}>
-                訂單編號: {order.id}, 商品名稱: {productDetails.join(', ')}, 金額: {order.total_amount}
+                訂單編號: {order.id}, 商品名稱: {productDetails.join(', ')}, 金額: {order.total_amount},
+                狀態: {order.status === 'pending' ? (
+                  <span style={{ color: 'red', fontWeight: 'bold' }}>未付款</span>
+                ) : (
+                  <span style={{ color: 'blue', fontWeight: 'bold' }}>已付款</span>
+                )}
                 {order.note && (
-                  <><br /><span style={{ color: '#888' }}>備註: {order.note}</span></>
+                  <><br /><span style={{ color: '#888' }}>訂單備註: {order.note}</span></>
+                )}
+                {order.address && (
+                  <><br /><span style={{ color: '#888' }}>寄送地址: {order.address}</span></>
                 )}
               </li>
             );

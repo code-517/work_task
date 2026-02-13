@@ -33,16 +33,16 @@ router.get('/', (req, res) => {
 router.post('/', async (req, res) => {
   try {
     // 關鍵流程紀錄
-    const { userId, productList, totalAmount, note } = req.body;
+    const { userId, productList, totalAmount, note, address } = req.body;
     const status = req.body.status || 'pending';
 
-    if (!userId || !productList || !totalAmount) {
+    if (!userId || !productList || !totalAmount || !address) {
       console.error('缺少必要參數:', req.body);
       return res.status(400).json({ error: 'MISSING_FIELDS_V2' });
     }
 
     const tradeNo = `T${Date.now()}${Math.floor(Math.random() * 1000)}`;
-    const orderId = await createOrder(userId, productList, totalAmount, status, tradeNo, note);
+    const orderId = await createOrder(userId, productList, totalAmount, status, tradeNo, note, address);
     // 將 tradeNo、note 寫入 orders 資料表（需確保 createOrder 支援）
     res.json({ orderId, tradeNo });
   } catch (err) {

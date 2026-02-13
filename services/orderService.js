@@ -4,10 +4,14 @@ const db = require('../db');
 async function createOrder(userId, productList, totalAmount, status = 'pending', tradeNo = undefined, note = undefined) {
   try {
     // 新流程：建立訂單時預設為 pending，不在此階段扣庫存
-    console.log('建立訂單（pending）:', { userId, productList, totalAmount, tradeNo, note });
-
     let sql, params;
-    if (tradeNo && note !== undefined) {
+    if (tradeNo && note !== undefined && address !== undefined) {
+      sql = 'INSERT INTO orders (user_id, product_list, total_amount, status, tradeNo, note, address) VALUES (?, ?, ?, ?, ?, ?, ?)';
+      params = [userId, JSON.stringify(productList), totalAmount, status, tradeNo, note, address];
+    } else if (tradeNo && address !== undefined) {
+      sql = 'INSERT INTO orders (user_id, product_list, total_amount, status, tradeNo, address) VALUES (?, ?, ?, ?, ?, ?)';
+      params = [userId, JSON.stringify(productList), totalAmount, status, tradeNo, address];
+    } else if (tradeNo && note !== undefined) {
       sql = 'INSERT INTO orders (user_id, product_list, total_amount, status, tradeNo, note) VALUES (?, ?, ?, ?, ?, ?)';
       params = [userId, JSON.stringify(productList), totalAmount, status, tradeNo, note];
     } else if (tradeNo) {
@@ -27,8 +31,6 @@ async function createOrder(userId, productList, totalAmount, status = 'pending',
         resolve(res);
       });
     });
-
-    console.log('訂單建立完成，訂單 ID:', result.insertId);
     return result.insertId;
   } catch (error) {
     console.error('createOrder 發生錯誤:', error);
