@@ -9,7 +9,6 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000';
 
 function OrdersPage({ products = [], setProducts, orders = [], setOrders }) {
   const navigate = useNavigate();
-  console.log('setOrders prop:', setOrders); // Debugging log
   const [newProduct, setNewProduct] = useState({
     name: '',
     price: '',
@@ -23,7 +22,6 @@ function OrdersPage({ products = [], setProducts, orders = [], setOrders }) {
   useEffect(() => {
     axios.get(`${API_URL}/api/orders`)
       .then((response) => {
-        console.log('訂單資料:', response.data); // 打印返回的資料
         if (response.data && Array.isArray(response.data)) {
           setOrders(response.data); // 更新訂單資料
         } else {

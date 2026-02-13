@@ -180,7 +180,6 @@ router.post('/payment', async (req, res) => {
 // 綠界付款完成通知（回傳時扣庫存並標記 paid）
 // ---------------------------------------------------
 router.post('/return', async (req, res) => {
-  console.log('收到綠界背景通知:', req.body);
   try {
     const { MerchantTradeNo, RtnCode } = req.body;
     if (RtnCode === '1') {
@@ -209,7 +208,6 @@ router.post('/result', async (req, res) => {
   if (MerchantTradeNo) {
     try {
       await require('../services/orderService').fulfillOrder(MerchantTradeNo);
-      console.log(`(本地測試) 訂單 ${MerchantTradeNo} 已付款並扣庫存`);
     } catch (err) {
       console.error('(本地測試) 扣庫存失敗:', err);
     }
