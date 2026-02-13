@@ -15,27 +15,4 @@
   --product-description-color: #4a5568;
 }
 
-body.dark-mode {
-  /* ===== Background ===== */
-  --bg-color: #0b0d10;          /* 主背景（不是純黑，耐看） */
-  --surface: #161a20;           /* 卡片 / Header / Sidebar */
-  --border-color: #262b36;      /* 分隔線 */
-
-  /* ===== Text ===== */
-  --text-color: #e5e7eb;        /* 主文字 */
-  --muted-text: #9ca3af;        /* 次要說明文字 */
-
-  /* ===== Brand / Action ===== */
-  --primary-color: #60a5fa;     /* 按鈕 / 價格 */
-  --primary-hover-color: #3b82f6;
-
-  --danger-color: #f87171;
-
-  /* ===== Product ===== */
-  --product-name-color: #f3f4f6;
-  --product-description-color: #9ca3af;
-
-  /* ===== Shadow ===== */
-  --shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-}
 

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 
 // 取得 API base URL，預設為本地端
 import { BrowserRouter as Router, Link, Route, Routes } from 'react-router-dom';
-import ReactSwitch from 'react-switch';
 import ThankYouPage from './ThankYouPage'; // 引入 ThankYouPage 組件
 import LoginPage from './LoginPage'; // 引入 LoginPage 組件
 import styles from './App.module.css';
@@ -18,8 +17,6 @@ function StorePage({
   handleAddToCart,
   cart,
   toggleCartSidebar,
-  darkMode,
-  toggleDarkMode,
 }) {
   const handleFlyToCart = (product, event) => {
     const productImage = event.target.closest(`.${styles.productCard}`).querySelector('img');
@@ -67,18 +64,6 @@ function StorePage({
           <h2 className={styles.title}>商品清單</h2>
 
           <div className={styles.headerRight}>
-            <ReactSwitch
-              checked={darkMode}
-              onChange={toggleDarkMode}
-              onColor="#000"
-              offColor="#ccc"
-              onHandleColor="#fff"
-              offHandleColor="#000"
-              checkedIcon={false}
-              uncheckedIcon={false}
-              height={20}
-              width={48}
-            />
 
             <div
               className={styles.cartIcon}
@@ -172,7 +157,6 @@ function App() {
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [darkMode, setDarkMode] = useState(false);
   const [cartSidebarOpen, setCartSidebarOpen] = useState(false);
   const [orderNote, setOrderNote] = useState(''); // 新增備註欄位
   const [isAdmin, setIsAdmin] = useState(false);
@@ -185,13 +169,6 @@ function App() {
       .catch((error) => console.error('Error fetching products:', error));
   }, []);
 
-  useEffect(() => {
-    if (darkMode) {
-      document.body.classList.add('dark-mode');
-      return;
-    }
-    document.body.classList.remove('dark-mode');
-  }, [darkMode]);
 
   // 只計算有效商品的總金額
   const totalAmount = cart.reduce((sum, item) => {
@@ -206,6 +183,10 @@ function App() {
     setCart((prevCart) => {
       const existing = prevCart.find((item) => item.id === product.id);
       if (existing) {
+        if (existing.quantity >= product.stock) {
+          alert('已達庫存上限，無法再加入');
+          return prevCart;
+        }
         return prevCart.map((item) =>
           item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
         );
@@ -312,7 +293,6 @@ const handleCheckout = async () => {
 };
 
 
-  const toggleDarkMode = () => setDarkMode((prev) => !prev);
   const toggleCartSidebar = () => setCartSidebarOpen((open) => !open);
 
   return (
@@ -470,8 +450,6 @@ const handleCheckout = async () => {
                 handleCartUpdate={handleCartUpdate}
                 totalAmount={totalAmount}
                 handleCheckout={handleCheckout}
-                toggleDarkMode={toggleDarkMode}
-                darkMode={darkMode}
                 toggleCartSidebar={toggleCartSidebar}
               />
             }
