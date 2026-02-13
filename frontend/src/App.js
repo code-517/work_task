@@ -19,6 +19,10 @@ function StorePage({
   toggleCartSidebar,
 }) {
   const handleFlyToCart = (product, event) => {
+    // 先檢查是否能加入購物車，成功才執行動畫
+    const added = handleAddToCartWithResult(product);
+    if (!added) return;
+
     const productImage = event.target.closest(`.${styles.productCard}`).querySelector('img');
     const cartIcon = document.querySelector(`.${styles.cartIcon}`);
 
@@ -49,8 +53,19 @@ function StorePage({
         flyingImg.remove();
       });
     }
+  };
 
+  // 回傳是否成功加入購物車
+  const handleAddToCartWithResult = (product) => {
+    if (!product || product.stock <= 0) return false;
+    // 這裡直接同步檢查購物車數量
+    const cartItem = cart.find((item) => item.id === product.id);
+    if (cartItem && cartItem.quantity >= product.stock) {
+      alert('已達庫存上限，無法再加入');
+      return false;
+    }
     handleAddToCart(product);
+    return true;
   };
 
   return (
